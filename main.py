@@ -18,14 +18,6 @@ cred = credentials.Certificate("./service-account-file.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-questions = [
-    inquirer.Checkbox('choices',
-                      message="What Windows event log categories to send?",
-                      choices=["All", "System", "Application", "Security"]),
-
-    inquirer.Text('email', message="What's your email address")
-]
-
 USERNAME = os.getlogin()
 SELECTED_EVENT_CATEGORIES = inquirer.prompt(questions)
 EMAIL = SELECTED_EVENT_CATEGORIES['email']
@@ -33,6 +25,13 @@ EMAIL = SELECTED_EVENT_CATEGORIES['email']
 today = date.today()
 DATESTAMP = today.strftime("%d-%m-%Y")# convert timestamp to string in dd-mm-yyyy
 
+questions = [
+    inquirer.Checkbox('choices',
+                      message="What Windows event log categories to send?",
+                      choices=["All", "System", "Application", "Security"]),
+
+    inquirer.Text('email', message="What's your email address")
+]
 
 if "All" in SELECTED_EVENT_CATEGORIES['choices']:
     SELECTED_EVENT_CATEGORIES = ["System", "Application", "Security"]
@@ -75,14 +74,14 @@ def handle_date_collection(datestamp):
 
 
 #----------------------------------------------------------------------
-def getAllEvents(server, logtypes, basePath, username, email):
+def loop_log_types(server, logtypes, basePath, username, email):
     if not server:
         serverName = "localhost"
     else: 
         serverName = server
     for logtype in logtypes:
         path = os.path.join(basePath, "%s_%s_log.log" % (serverName, logtype))
-        getEventLogs(server, logtype, path, username, email)
+        get_event_logs(server, logtype, path, username, email)
 #----------------------------------------------------------------------
 
 
@@ -103,12 +102,8 @@ def enrich_event_log(event_id):
 #----------------------------------------------------------------------
 
 
-def getEventLogs(server, logtype, logPath, username, email):
-    """
-    Get the event logs from the specified machine according to the
-    logtype (Example: system) and save it to the appropriately
-    named log file
-    """
+def get_event_logs(server, logtype, logPath, username, email):
+
     print ("Logging %s events" % logtype)
     codecs.open(logPath, encoding='utf-8', mode='w')
     
@@ -178,4 +173,4 @@ if __name__ == "__main__":
     server = None  # None = local machine
     handle_users_collection(USERNAME, EMAIL)
     handle_date_collection(DATESTAMP)
-    #getAllEvents(server, SELECTED_EVENT_CATEGORIES, ".", USERNAME, EMAIL)
+    loop_log_types(server, SELECTED_EVENT_CATEGORIES, ".", USERNAME, EMAIL)
