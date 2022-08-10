@@ -103,6 +103,7 @@ def enrich_event_log(event_id):
 
 
 def get_event_logs(server, logtype, logPath, username, email):
+
     print ("Logging %s events" % logtype)
     codecs.open(logPath, encoding='utf-8', mode='w')
     
